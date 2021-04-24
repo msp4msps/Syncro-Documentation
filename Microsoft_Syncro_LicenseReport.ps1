@@ -324,6 +324,7 @@ $AccountSkuIdDecodeData = @{
     "MDATP_XPLAT"                        = "Microsoft Defender for Endpoint"
     "CCIBOTS_PRIVPREV_VIRAL"             = "Power Virtual Agents Viral Trial"
     "ADALLOM_STANDALONE"                 = "Microsoft Cloud App Security"
+    "BUSINESS_VOICE_MED2_TELCO"          = "Microsoft 365 Business Voice (US)"
  
 }
 
