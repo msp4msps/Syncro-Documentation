@@ -256,8 +256,8 @@ foreach ($customer in $customers) {
     Import-PSSession $session
     }catch{("This tenant does not have exchange")}
     try{ 
-    $mailboxes = Get-Mailbox | Get-MailboxStatistics | Select-Object DisplayName, @{name=”TotalItemSize (GB)”;expression={[math]::Round((($_.TotalItemSize.Value.ToString()).Split(“(“)[1].Split(” “)[0].Replace(“,”,””)/1GB),2)}},ItemCount,LastLogonTime | Sort “TotalItemSize (GB)” -Descending
     Write-Host "Geting ALl Mailbox information, this will take a few minutes"
+    $mailboxes = Get-Mailbox | Get-MailboxStatistics | Select-Object DisplayName, @{name=”TotalItemSize (GB)”;expression={[math]::Round((($_.TotalItemSize.Value.ToString()).Split(“(“)[1].Split(” “)[0].Replace(“,”,””)/1GB),2)}},ItemCount,LastLogonTime | Sort “TotalItemSize (GB)” -Descending
     $mailflowRules = Get-TransportRule | Select-Object Name
     $DkimConfig = Get-DkimSigningConfig | Select-Object Domain, Enabled
     $ATPSettings = Get-AtpPolicyForO365 | Select-Object Name, EnableSafeLinksForO365Clients, EnableATPForSPOTeamsODB
