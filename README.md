@@ -1,6 +1,6 @@
 # Syncro-Documentation
 
-Documenting customer Microsoft 365 environments can be extremely tedious and time consuming. Keeping that information up to date is also a heavy task to manage. I wanted to create some scripts that would automate and update documents in Syncro that are tied to your customer environments. For this reason I create a some scripts that perform the following:
+Documenting customer Microsoft 365 environments can be extremely tedious and time consuming. Keeping that information up to date is also a heavy task to manage. I wanted to create some scripts that would automate and update documents in Syncro that are tied to your customer environments. For this reason I created a some scripts that perform the following:
 <ul>
  	<li><strong>Microsoft License Information</strong> =&gt; Displays all current licensed and unlicensed users as well as showing what licenses are available vs. consumed</li>
  	<li><strong>Microsoft MFA Status</strong> =&gt; Displays MFA status, Conditional Access Policies, and DUO MFA custom controls</li>
