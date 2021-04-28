@@ -350,7 +350,7 @@ foreach ($customer in $customers) {
     $domain = $customer.DefaultDomainName
     $Licenselist = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/subscribedSkus" -Headers $Headers -Method Get -ContentType "application/json").value
     $Licenselist | ForEach-Object { $_.skupartnumber = "$($AccountSkuIdDecodeData.$($_.skupartnumber))" }
-    $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
+    $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users?$top=999' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
     $UserObj = foreach ($user in $users) {
         [PSCustomObject]@{
             'DisplayName'      = $user.displayname
