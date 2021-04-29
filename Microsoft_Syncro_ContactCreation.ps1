@@ -212,7 +212,7 @@ Write-Host "Getting All Customers In Syncro"
 $page = 1
 $totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
 $SyncroCustomers  = Do{
-   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page $page).customers
    $page = $page + 1
    }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
