@@ -1,4 +1,4 @@
-﻿Param
+Param
 (
 
 [cmdletbinding()]
@@ -80,15 +80,17 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
+    [string]$SyncroAPIKey,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json'
 $response
 
 }
+
 
 
 ###Update Documents in Syncro #######
@@ -213,7 +215,12 @@ $response
 ###Fnd All Syncro Customers##########
 Write-Host "Getting All Customers In Syncro"
 
-$SyncroCustomers = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+$page = 1
+$totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+$SyncroCustomers  = Do{
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   $page = $page + 1
+   }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
 $CustomerObj = forEach ($customer in $SyncroCustomers) {
     Write-Host "Getting domain for $($customer.business_name)"
