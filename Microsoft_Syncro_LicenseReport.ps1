@@ -195,11 +195,12 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
+    [string]$SyncroAPIKey,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method GET -ContentType 'application/json'
 $response
 
@@ -213,7 +214,7 @@ Write-Host "Getting All Customers In Syncro"
 $page = 1
 $totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
 $SyncroCustomers  = Do{
-   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page $page).customers
    $page = $page + 1
    }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
@@ -374,7 +375,13 @@ foreach ($customer in $customers) {
         }  
     }
    $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
-   $CurrentDocuments = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).wiki_pages
+   $page = 1
+   $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+   $CurrentDocuments = Do{
+   (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page $page).wiki_pages
+   $page = $page + 1
+   }Until ($page -gt $totaldocCount) 
+   
    $name = "Microsoft License Report: $($customer.Name)"
    if($customer_id){
    $bodyVariables = @{
