@@ -1,4 +1,4 @@
-﻿Param
+Param
 (
 
 [cmdletbinding()]
@@ -73,46 +73,17 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
+    [string]$SyncroAPIKey,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json'
 $response
 
 }
 
-###GET All contacts in Syncro #######
-
-function Get-Contacts () {
-
-<#
-.SYNOPSIS
-This function is used to get all contacts that exist in Syncro
-.DESCRIPTION
-The function connects to your Syncro environment and list all contacts 
-.EXAMPLE
-Get-Contacts -SyncroSubDomain $SyncroSubDomain -SyncroAPIKey $SyncroAPIkey
-Gets All Available Contacts in Syncro
-.NOTES
-NAME: Get-Contacts
-#>
-
-[cmdletbinding()]
-
-param
-(
-    [Parameter(Mandatory=$true)]
-    [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
-)
-
-
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/contacts?api_key=$($SyncroAPIKey)"
-$response = Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json'
-$response
-}
 
 
 ###FUNCTION TO CREATE CONTACTS IN SYNCRO####
@@ -223,11 +194,12 @@ param
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
     [string]$SyncroAPIKey,
-    [string]$customerId
+    [string]$customerId,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers/$($customerId)?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers/$($customerId)?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json'
 $response
 
@@ -237,7 +209,12 @@ $response
 ###Fnd All Syncro Customers##########
 Write-Host "Getting All Customers In Syncro"
 
-$SyncroCustomers = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+$page = 1
+$totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+$SyncroCustomers  = Do{
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   $page = $page + 1
+   }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
 $CustomerObj = forEach ($customer in $SyncroCustomers) {
     Write-Host "Getting domain for $($customer.business_name)"
@@ -275,8 +252,12 @@ foreach ($customer in $customers) {
     $domain = $customer.DefaultDomainName
     $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
    $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
-   $contacts = (Get-Contacts -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -customerId $customer_id).customer.contacts
-   
+   $page = 1
+   $totalPageCount = (Get-Contacts -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+   $contacts = Do{
+   (Get-Contacts -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -customerId $customer_id -page $page).customer.contacts
+   $page = $page + 1
+   }Until ($page -gt $totalPageCount)
    if($customer_id){
    foreach ($user in $Users) {
    $userExist = ($contacts| where-object {$_.email -eq $user.userprincipalName})
