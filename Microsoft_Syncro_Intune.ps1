@@ -1,4 +1,4 @@
-﻿Param
+Param
 (
 
 [cmdletbinding()]
@@ -89,16 +89,16 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
+    [string]$SyncroAPIKey,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/customers?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json'
 $response
 
 }
-
 
 ###Update Documents in Syncro #######
 
@@ -222,7 +222,12 @@ $response
 ###Fnd All Syncro Customers##########
 Write-Host "Getting All Customers In Syncro"
 
-$SyncroCustomers = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+$page = 1
+$totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+$SyncroCustomers  = Do{
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   $page = $page + 1
+   }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
 $CustomerObj = forEach ($customer in $SyncroCustomers) {
     Write-Host "Getting domain for $($customer.business_name)"
@@ -262,7 +267,8 @@ foreach ($customer in $customers) {
     $Devices = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/deviceManagement/managedDevices' -Headers $headers -Method Get -ContentType "application/json").value | Select-Object deviceName, ownerType, operatingSystem, osVersion, complianceState,userPrincipalName, autopilotEnrolled,isEncrypted
     $complianceSummary = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicyDeviceStateSummary' -Headers $headers -Method Get -ContentType "application/json") | Select-Object inGracePeriodCount, compliantDeviceCount, nonCompliantDeviceCount
     $apps = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/deviceAppManagement/mobileApps?$filter=(microsoft.graph.managedApp/appAvailability eq null or isAssigned eq true)&$orderby=displayName' -Headers $headers -Method Get -ContentType "application/json").value  | Select-Object displayName
-    }catch{("Either this tenant does not have Intune licensing or you have not given proper permissions to the app listed at the begining of this script")}
+    }catch{("Either this tenant does not have Intune licensing or you have not given proper permissions to the app listed at the begining of this script")
+    continue}
    
    #####Create or Update Documentation in Snycro####
    if($Devices){
