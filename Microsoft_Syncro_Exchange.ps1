@@ -218,7 +218,7 @@ Write-Host "Getting All Customers In Syncro"
 $page = 1
 $totalPageCount = (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
 $SyncroCustomers  = Do{
-   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).customers
+   (GetAll-Customers -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page $page).customers
    $page = $page + 1
    }Until ($page -gt $totalPageCount)
 Write-Host "Found $($SyncroCustomers.Count) Customers in Syncro" -ForegroundColor Green
@@ -274,7 +274,12 @@ foreach ($customer in $customers) {
     try{
     Remove-PSSession $session}catch{("There is no session to Remove")}
    $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
-   $CurrentDocuments = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey).wiki_pages
+   $page = 1
+   $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
+   $CurrentDocuments = Do{
+   (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page $page).wiki_pages
+   $page = $page + 1
+   }Until ($page -gt $totaldocCount) 
    $name = "Microsoft Exchange Report: $($customer.Name)"
    if($customer_id){
    $bodyVariables = @{
