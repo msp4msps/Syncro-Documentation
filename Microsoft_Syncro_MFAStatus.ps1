@@ -196,16 +196,16 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey
+    [string]$SyncroAPIKey,
+    [string]$page
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)&page=$($page)"
 $response = Invoke-RestMethod -Uri $url -Method GET -ContentType 'application/json'
 $response
 
 }
-
 
 
 ###Fnd All Syncro Customers##########
