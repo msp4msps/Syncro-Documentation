@@ -355,6 +355,7 @@ foreach ($customer in $customers) {
     $headers = @{ "Authorization" = "Bearer $($CustomerToken.AccessToken)" }
     write-host "Collecting data for $($Customer.Name)" -ForegroundColor Green
     $domain = $customer.DefaultDomainName
+    $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
     $Licenselist = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/subscribedSkus" -Headers $Headers -Method Get -ContentType "application/json").value
     $Licenselist | ForEach-Object { $_.skupartnumber = "$($AccountSkuIdDecodeData.$($_.skupartnumber))" }
     $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users?$top=999' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
@@ -374,7 +375,7 @@ foreach ($customer in $customers) {
             'unused licenses'   = $license.prepaidUnits.enabled - $license.prepaidUnits.suspended - $license.consumedunits
         }  
     }
-   $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
+   $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
    $CurrentDocuments = Do{
