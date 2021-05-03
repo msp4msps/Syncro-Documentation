@@ -196,16 +196,16 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string]$SyncroSubdomain,
-    [string]$SyncroAPIKey,
-    [string]$page
+    [string]$SyncroAPIKey
 )
 
 
-$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)&page=$($page)"
+$url =  "https://$($SyncroSubdomain).syncromsp.com/api/v1/wiki_pages?api_key=$($SyncroAPIKey)"
 $response = Invoke-RestMethod -Uri $url -Method GET -ContentType 'application/json'
 $response
 
 }
+
 
 
 ###Fnd All Syncro Customers##########
@@ -250,6 +250,7 @@ foreach ($customer in $customers) {
     $CustomerToken = New-PartnerAccessToken -ApplicationId $ApplicationId -Credential $credential -RefreshToken $refreshToken -Scopes 'https://graph.microsoft.com/.default' -Tenant $customer.TenantID
     $headers = @{ "Authorization" = "Bearer $($CustomerToken.AccessToken)" }
     $domain = $customer.DefaultDomainName
+    $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
     $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/v1.0/users?$top=999' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
     $MFAStatus = Get-MsolUser -all -TenantId $customer.TenantId | Select-Object DisplayName,UserPrincipalName,@{N="MFA Status"; E={if( $_.StrongAuthenticationRequirements.State -ne $null) {$_.StrongAuthenticationRequirements.State} else { "Disabled"}}}
     
@@ -301,7 +302,7 @@ foreach ($customer in $customers) {
 
         }
 }
-   $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
+   $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
    $CurrentDocuments = Do{
