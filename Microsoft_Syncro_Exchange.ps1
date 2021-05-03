@@ -259,6 +259,7 @@ foreach ($customer in $customers) {
     $tokenValue = ConvertTo-SecureString "Bearer $($token.AccessToken)" -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($upn, $tokenValue)
     $domain = $customer.DefaultDomainName
+    $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
     $InitialDomain = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$_.IsInitial -eq $true}
     $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "https://ps.outlook.com/powershell-liveid?DelegatedOrg=$($InitialDomain)&BasicAuthToOAuthConversion=true" -Credential $credential -Authentication Basic -AllowRedirection -ErrorAction SilentlyContinue
     Import-PSSession $session
@@ -274,7 +275,7 @@ foreach ($customer in $customers) {
     }catch{("This tenant does not have ATP licensing")}
     try{
     Remove-PSSession $session}catch{("There is no session to Remove")}
-   $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
+   $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
    $CurrentDocuments = Do{
