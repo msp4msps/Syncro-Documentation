@@ -262,6 +262,7 @@ foreach ($customer in $customers) {
     $CustomerToken = New-PartnerAccessToken -ApplicationId $ApplicationId -Credential $credential -RefreshToken $refreshToken -Scopes 'https://graph.microsoft.com/.default' -Tenant $customer.TenantID
     $headers = @{ "Authorization" = "Bearer $($CustomerToken.AccessToken)" }
     $domain = $customer.DefaultDomainName
+    $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
 
     #####Get Intune information if it is available####
     try{
@@ -273,7 +274,7 @@ foreach ($customer in $customers) {
    
    #####Create or Update Documentation in Snycro####
    if($Devices){
-   $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
+   $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totaldocCount = (Get-WikiPage -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
    $CurrentDocuments = Do{
