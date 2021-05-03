@@ -250,8 +250,9 @@ foreach ($customer in $customers) {
     $headers = @{ "Authorization" = "Bearer $($CustomerToken.AccessToken)" }
     write-host "Collecting data for $($Customer.Name)" -ForegroundColor Green
     $domain = $customer.DefaultDomainName
+    $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
     $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
-   $customer_id = ($CustomerObj | Where-Object { $_.Domain -eq $domain}).customer_id
+   $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totalPageCount = (Get-Contacts -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
    $contacts = Do{
