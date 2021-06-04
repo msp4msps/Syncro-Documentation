@@ -246,12 +246,10 @@ Write-Host "Found $($customers.Count) customers in Partner Center." -ForegroundC
 
 foreach ($customer in $customers) {
     Write-Host "Found $($customer.Name) in Partner Center" -ForegroundColor Green
-    $CustomerToken = New-PartnerAccessToken -ApplicationId $ApplicationId -Credential $credential -RefreshToken $refreshToken -Scopes 'https://graph.microsoft.com/.default' -Tenant $customer.TenantID
-    $headers = @{ "Authorization" = "Bearer $($CustomerToken.AccessToken)" }
     write-host "Collecting data for $($Customer.Name)" -ForegroundColor Green
     $domain = $customer.DefaultDomainName
     $AllDomains = Get-MsolDomain -TenantId $customer.TenantID
-    $Users = (Invoke-RestMethod -Uri 'https://graph.microsoft.com/beta/users' -Headers $Headers -Method Get -ContentType "application/json").value | Select-Object DisplayName, proxyaddresses, AssignedLicenses, userprincipalname
+    $Users = Get-MSoluser -TenantId $customer.TenantId -All | Where {$_.UserPrincipalName -NotLike "*#EXT#*" -and $_.isLicensed -eq $true} 
    $customer_id = ($CustomerObj | Where-Object { $_.Domain -in $AllDomains.name}).customer_id
    $page = 1
    $totalPageCount = (Get-Contacts -SyncroSubdomain $SyncroSubdomain -SyncroAPIKey $SyncroAPIKey -page 1).meta.total_pages
