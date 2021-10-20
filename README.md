@@ -78,3 +78,5 @@ Microsoft 365 Users are created as contacts for a customer if they do not alread
 <img src="/Syncro/pic14.png" alt="Download SPPKG file screenshot" style="max-width:100%;">
 </a>
 
+<H2>License<H2>
+This project is under the MIT license.
